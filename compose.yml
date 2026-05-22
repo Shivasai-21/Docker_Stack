@@ -1,0 +1,103 @@
+version: "3.8"
+
+
+services:
+
+  reverse-proxy:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role == manager
+
+  app1:
+    image: shivasai21/myimg:bus
+    networks:
+      - app_network
+    volumes:
+      - app1:/opt/bus_volume
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    secrets:
+      - db_password
+
+  app2:
+    image: shivasai21/myimg:movie
+    networks:
+      - app_network
+    volumes:
+      - app2:/opt/movie_volume
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+        delay: 10s
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    secrets:
+      - api_key
+
+  app3:
+    image: shivasai21/myimg:flight
+    networks:
+      - app_network
+    volumes:
+      - app3:/opt/flight_volume
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+        delay: 5s
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    secrets:
+      - flight_token
+
+volumes:
+  app1:
+  app2:
+  app3:
+
+networks:
+  app_network:
+    driver: overlay
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+
+  api_key:
+    file: ./secrets/api_key.txt
+
+  flight_token:
+    file: ./secrets/flight_token.txt

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Booking</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #eef4ff;
+      color: #1e293b;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a, #2563eb);
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 30px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: white;
+      margin-left: 20px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      opacity: 0.8;
+    }
+
+    .hero {
+      height: 500px;
+      background: linear-gradient(rgba(15,23,42,0.65), rgba(15,23,42,0.7)),
+      url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1400&auto=format&fit=crop') center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .search-box {
+      background: white;
+      width: 100%;
+      max-width: 1100px;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .search-box h2 {
+      margin-bottom: 20px;
+      color: #0f172a;
+      font-size: 32px;
+    }
+
+    .trip-options {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #334155;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    input,
+    select,
+    button {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 15px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .section-title {
+      text-align: center;
+      margin: 60px 0 25px;
+      font-size: 38px;
+      color: #0f172a;
+    }
+
+    .flight-container {
+      width: 92%;
+      margin: auto;
+      display: grid;
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+
+    .flight-card {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: 0.3s;
+    }
+
+    .flight-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .airline {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .airline-logo {
+      width: 60px;
+      height: 60px;
+      background: #dbeafe;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .airline h3 {
+      margin-bottom: 5px;
+    }
+
+    .flight-route {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .time-box {
+      text-align: center;
+    }
+
+    .time-box h2 {
+      color: #0f172a;
+      margin-bottom: 5px;
+    }
+
+    .duration {
+      text-align: center;
+      color: #64748b;
+    }
+
+    .price-section {
+      text-align: center;
+    }
+
+    .price {
+      font-size: 32px;
+      color: #2563eb;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .booking-section {
+      width: 92%;
+      margin: auto;
+      background: white;
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      margin-bottom: 60px;
+    }
+
+    .booking-section h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .seat-layout {
+      display: grid;
+      grid-template-columns: repeat(6, 60px);
+      gap: 12px;
+      justify-content: center;
+      margin: 35px 0;
+    }
+
+    .seat {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: #dbeafe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .seat:hover {
+      background: #93c5fd;
+    }
+
+    .seat.selected {
+      background: #2563eb;
+      color: white;
+    }
+
+    .seat.booked {
+      background: #ef4444;
+      color: white;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      text-align: center;
+    }
+
+    .summary h3 {
+      margin-bottom: 12px;
+    }
+
+    .summary button {
+      margin-top: 20px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    footer {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    @media(max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .flight-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .seat-layout {
+        grid-template-columns: repeat(4, 55px);
+      }
+
+      .seat {
+        width: 55px;
+        height: 55px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SkyJourney</h1>
+
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Flights</a>
+      <a href="#">Offers</a>
+      <a href="#">Support</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="search-box">
+      <h2>Book Domestic & International Flights</h2>
+
+      <div class="trip-options">
+        <label><input type="radio" name="trip" checked /> One Way</label>
+        <label><input type="radio" name="trip" /> Round Trip</label>
+        <label><input type="radio" name="trip" /> Multi City</label>
+      </div>
+
+      <div class="form-grid">
+        <input type="text" placeholder="From" />
+        <input type="text" placeholder="To" />
+        <input type="date" />
+        <input type="date" />
+
+        <select>
+          <option>1 Traveller</option>
+          <option>2 Travellers</option>
+          <option>3 Travellers</option>
+          <option>4 Travellers</option>
+        </select>
+
+        <select>
+          <option>Economy</option>
+          <option>Premium Economy</option>
+          <option>Business</option>
+          <option>First Class</option>
+        </select>
+
+        <button onclick="searchFlights()">Search Flights</button>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Popular Flights</h2>
+
+  <section class="flight-container">
+
+    <div class="flight-card">
+      <div class="airline">
+        <div class="airline-logo">✈</div>
+
+        <div>
+          <h3>Air India</h3>
+          <p>AI-202</p>
+        </div>
+      </div>
+
+      <div class="flight-route">
+        <div class="time-box">
+          <h2>06:30</h2>
+          <p>Hyderabad</p>
+        </div>
+
+        <div class="duration">
+          <p>2h 15m</p>
+          <p>Non Stop</p>
+        </div>
+
+        <div class="time-box">
+          <h2>08:45</h2>
+          <p>Mumbai</p>
+        </div>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹5,499</div>
+        <button onclick="scrollToBooking('Air India')">Book Now</button>
+      </div>
+    </div>
+
+    <div class="flight-card">
+      <div class="airline">
+        <div class="airline-logo">🛫</div>
+
+        <div>
+          <h3>IndiGo</h3>
+          <p>6E-481</p>
+        </div>
+      </div>
+
+      <div class="flight-route">
+        <div class="time-box">
+          <h2>09:15</h2>
+          <p>Chennai</p>
+        </div>
+
+        <div class="duration">
+          <p>1h 45m</p>
+          <p>Direct</p>
+        </div>
+
+        <div class="time-box">
+          <h2>11:00</h2>
+          <p>Bangalore</p>
+        </div>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹3,999</div>
+        <button onclick="scrollToBooking('IndiGo')">Book Now</button>
+      </div>
+    </div>
+
+    <div class="flight-card">
+      <div class="airline">
+        <div class="airline-logo">🌍</div>
+
+        <div>
+          <h3>Emirates</h3>
+          <p>EK-572</p>
+        </div>
+      </div>
+
+      <div class="flight-route">
+        <div class="time-box">
+          <h2>11:40</h2>
+          <p>Delhi</p>
+        </div>
+
+        <div class="duration">
+          <p>4h 50m</p>
+          <p>International</p>
+        </div>
+
+        <div class="time-box">
+          <h2>16:30</h2>
+          <p>Dubai</p>
+        </div>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹18,999</div>
+        <button onclick="scrollToBooking('Emirates')">Book Now</button>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="booking-section" id="bookingSection">
+    <h2 id="flightTitle">Choose Your Seats</h2>
+
+    <div class="seat-layout" id="seatLayout"></div>
+
+    <div class="summary">
+      <h3>Selected Seats: <span id="selectedSeats">None</span></h3>
+      <h2>Total Fare: ₹<span id="totalPrice">0</span></h2>
+      <button onclick="confirmBooking()">Confirm Flight Booking</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 SkyJourney Airlines Booking Platform</p>
+  </footer>
+
+  <script>
+    const seatLayout = document.getElementById('seatLayout');
+    const selectedSeatsText = document.getElementById('selectedSeats');
+    const totalPriceText = document.getElementById('totalPrice');
+    const flightTitle = document.getElementById('flightTitle');
+
+    const seatPrice = 2200;
+    let selectedSeats = [];
+    let selectedFlight = 'Flight';
+
+    function createSeats() {
+      const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+      for (let row = 1; row <= 8; row++) {
+        seatLetters.forEach(letter => {
+          const seat = document.createElement('div');
+          const seatNumber = row + letter;
+
+          seat.classList.add('seat');
+          seat.innerText = seatNumber;
+
+          if (['1C', '2A', '3F', '5D', '7B'].includes(seatNumber)) {
+            seat.classList.add('booked');
+          }
+
+          seat.addEventListener('click', () => {
+            if (seat.classList.contains('booked')) return;
+
+            seat.classList.toggle('selected');
+
+            if (seat.classList.contains('selected')) {
+              selectedSeats.push(seatNumber);
+            } else {
+              selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+            }
+
+            updateSummary();
+          });
+
+          seatLayout.appendChild(seat);
+        });
+      }
+    }
+
+    function updateSummary() {
+      selectedSeatsText.innerText = selectedSeats.length
+        ? selectedSeats.join(', ')
+        : 'None';
+
+      totalPriceText.innerText = selectedSeats.length * seatPrice;
+    }
+
+    function searchFlights() {
+      alert('Searching flights...');
+    }
+
+    function scrollToBooking(flight) {
+      selectedFlight = flight;
+      flightTitle.innerText = `${flight} - Choose Your Seats`;
+
+      document.getElementById('bookingSection').scrollIntoView({
+        behavior: 'smooth'
+      });
+    }
+
+    function confirmBooking() {
+      if (selectedSeats.length === 0) {
+        alert('Please select at least one seat.');
+        return;
+      }
+
+      alert(
+        `Flight Booking Confirmed!\n\nAirline: ${selectedFlight}\nSeats: ${selectedSeats.join(', ')}\nTotal Fare: ₹${selectedSeats.length * seatPrice}`
+      );
+    }
+
+    createSeats();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bus Booking System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f7fb;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a, #2563eb);
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      font-size: 28px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: bold;
+    }
+
+    .hero {
+      background: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;
+      height: 350px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+    }
+
+    .search-box {
+      position: relative;
+      z-index: 2;
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 1000px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+
+    .search-box h2 {
+      margin-bottom: 20px;
+      color: #0f172a;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    input, select, button {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 15px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .section-title {
+      text-align: center;
+      margin: 50px 0 20px;
+      font-size: 30px;
+      color: #0f172a;
+    }
+
+    .bus-container {
+      width: 90%;
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+
+    .bus-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+      transition: transform 0.3s;
+    }
+
+    .bus-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .bus-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .bus-name {
+      font-size: 22px;
+      font-weight: bold;
+      color: #1e293b;
+    }
+
+    .rating {
+      background: #16a34a;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    .route {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+      align-items: center;
+    }
+
+    .route div {
+      text-align: center;
+    }
+
+    .route h3 {
+      color: #0f172a;
+      margin-bottom: 5px;
+    }
+
+    .price-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .price {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .features {
+      margin-top: 10px;
+      color: #64748b;
+      font-size: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .feature-tag {
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .booking-section {
+      width: 90%;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+      margin-bottom: 50px;
+    }
+
+    .booking-section h2 {
+      margin-bottom: 20px;
+      color: #0f172a;
+    }
+
+    .seat-layout {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 12px;
+      justify-content: center;
+      margin: 25px 0;
+    }
+
+    .seat {
+      width: 60px;
+      height: 60px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .seat:hover {
+      background: #93c5fd;
+    }
+
+    .seat.selected {
+      background: #2563eb;
+      color: white;
+    }
+
+    .seat.booked {
+      background: #ef4444;
+      color: white;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    footer {
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    @media(max-width: 600px) {
+      .seat-layout {
+        grid-template-columns: repeat(4, 50px);
+      }
+
+      .seat {
+        width: 50px;
+        height: 50px;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>GoBus</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Bookings</a>
+      <a href="#">Offers</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="search-box">
+      <h2>Book Your Bus Ticket</h2>
+      <div class="form-grid">
+        <input type="text" placeholder="From" />
+        <input type="text" placeholder="To" />
+        <input type="date" />
+        <select>
+          <option>1 Passenger</option>
+          <option>2 Passengers</option>
+          <option>3 Passengers</option>
+          <option>4 Passengers</option>
+        </select>
+        <button onclick="searchBuses()">Search Buses</button>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Available Buses</h2>
+
+  <section class="bus-container" id="busContainer">
+    <div class="bus-card">
+      <div class="bus-top">
+        <div class="bus-name">Express Travels</div>
+        <div class="rating">4.6 ★</div>
+      </div>
+
+      <div class="route">
+        <div>
+          <h3>08:00 PM</h3>
+          <p>Hyderabad</p>
+        </div>
+
+        <div>
+          <strong>8h 30m</strong>
+        </div>
+
+        <div>
+          <h3>04:30 AM</h3>
+          <p>Bangalore</p>
+        </div>
+      </div>
+
+      <div class="features">
+        <span class="feature-tag">AC Sleeper</span>
+        <span class="feature-tag">WiFi</span>
+        <span class="feature-tag">Charging Port</span>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹999</div>
+        <button onclick="scrollToBooking()">Book Now</button>
+      </div>
+    </div>
+
+    <div class="bus-card">
+      <div class="bus-top">
+        <div class="bus-name">Royal Bus Lines</div>
+        <div class="rating">4.4 ★</div>
+      </div>
+
+      <div class="route">
+        <div>
+          <h3>09:30 PM</h3>
+          <p>Chennai</p>
+        </div>
+
+        <div>
+          <strong>7h 15m</strong>
+        </div>
+
+        <div>
+          <h3>04:45 AM</h3>
+          <p>Coimbatore</p>
+        </div>
+      </div>
+
+      <div class="features">
+        <span class="feature-tag">Luxury Seats</span>
+        <span class="feature-tag">Blanket</span>
+        <span class="feature-tag">GPS Tracking</span>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹799</div>
+        <button onclick="scrollToBooking()">Book Now</button>
+      </div>
+    </div>
+
+    <div class="bus-card">
+      <div class="bus-top">
+        <div class="bus-name">City Connect</div>
+        <div class="rating">4.2 ★</div>
+      </div>
+
+      <div class="route">
+        <div>
+          <h3>06:45 PM</h3>
+          <p>Vijayawada</p>
+        </div>
+
+        <div>
+          <strong>5h 20m</strong>
+        </div>
+
+        <div>
+          <h3>12:05 AM</h3>
+          <p>Visakhapatnam</p>
+        </div>
+      </div>
+
+      <div class="features">
+        <span class="feature-tag">Semi Sleeper</span>
+        <span class="feature-tag">Water Bottle</span>
+        <span class="feature-tag">Live Tracking</span>
+      </div>
+
+      <div class="price-section">
+        <div class="price">₹599</div>
+        <button onclick="scrollToBooking()">Book Now</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="booking-section" id="bookingSection">
+    <h2>Select Your Seats</h2>
+
+    <div class="seat-layout" id="seatLayout"></div>
+
+    <div class="summary">
+      <h3>Selected Seats: <span id="selectedSeats">None</span></h3>
+      <h2>Total Price: ₹<span id="totalPrice">0</span></h2>
+      <button onclick="confirmBooking()">Confirm Booking</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 GoBus. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    const seatLayout = document.getElementById('seatLayout');
+    const selectedSeatsText = document.getElementById('selectedSeats');
+    const totalPriceText = document.getElementById('totalPrice');
+
+    const ticketPrice = 499;
+    let selectedSeats = [];
+
+    function createSeats() {
+      for (let i = 1; i <= 24; i++) {
+        const seat = document.createElement('div');
+        seat.classList.add('seat');
+        seat.innerText = i;
+
+        if ([3, 7, 12, 18].includes(i)) {
+          seat.classList.add('booked');
+        }
+
+        seat.addEventListener('click', () => {
+          if (seat.classList.contains('booked')) return;
+
+          seat.classList.toggle('selected');
+
+          if (seat.classList.contains('selected')) {
+            selectedSeats.push(i);
+          } else {
+            selectedSeats = selectedSeats.filter(s => s !== i);
+          }
+
+          updateSummary();
+        });
+
+        seatLayout.appendChild(seat);
+      }
+    }
+
+    function updateSummary() {
+      selectedSeatsText.innerText = selectedSeats.length
+        ? selectedSeats.join(', ')
+        : 'None';
+
+      totalPriceText.innerText = selectedSeats.length * ticketPrice;
+    }
+
+    function confirmBooking() {
+      if (selectedSeats.length === 0) {
+        alert('Please select at least one seat.');
+        return;
+      }
+
+      alert(`Booking Confirmed!\nSeats: ${selectedSeats.join(', ')}\nTotal: ₹${selectedSeats.length * ticketPrice}`);
+    }
+
+    function searchBuses() {
+      alert('Searching available buses...');
+    }
+
+    function scrollToBooking() {
+      document.getElementById('bookingSection').scrollIntoView({
+        behavior: 'smooth'
+      });
+    }
+
+    createSeats();
+  </script>
+
+</body>
+</html>
