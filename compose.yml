@@ -94,10 +94,9 @@ networks:
 
 secrets:
   db_password:
-    file: ./secrets/db_password.txt
-
+    external: true
   api_key:
-    file: ./secrets/api_key.txt
-
+    external: true
   flight_token:
-    file: ./secrets/flight_token.txt
+    external: true
+
