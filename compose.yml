@@ -7,17 +7,22 @@ services:
     image: nginx:latest
     ports:
       - "80:80"
+
     networks:
       - app_network
+
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
     deploy:
-      replicas: 1
+      replicas: 3
+
       restart_policy:
         condition: any
-      placement:
-        constraints:
-          - node.role == manager
+
+      update_config:
+        parallelism: 1
+        delay: 10s
 
   app1:
     image: shivasai21/myimg:bus
