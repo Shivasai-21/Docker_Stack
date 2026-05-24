@@ -23,8 +23,8 @@ services:
       replicas: 3
 
       placement:
-        preferences:
-          - spread: node.id
+        constraints:
+          - node.role == manager
 
       restart_policy:
         condition: on-failure
