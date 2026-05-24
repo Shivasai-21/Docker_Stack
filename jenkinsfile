@@ -1,0 +1,240 @@
+pipeline {
+    agent { label 'Manager' }
+    parameters {
+        string(name: 'MAIL_ID', description: 'Recipient email address')
+    }
+    environment {
+        REGISTRY   = "docker.io/shivasai21"
+        STACK_NAME = "docker_stack"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
+       // APP_URL = 'http://localhost'
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Shivasai-21/Docker_Stack.git'
+            }
+        }
+        stage('Code Quality - SonarQube') {
+        
+            steps {
+        
+                script {
+        
+                    def scannerHome = tool 'mysonarqube'
+        
+                    withSonarQubeEnv('sonarqube') {
+        
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=docker-stack \
+                        -Dsonar.sources=.
+                        """
+                    }
+                }
+            }
+        }
+        stage('Validate Compose') {
+            steps {
+                sh 'docker-compose -f compose.yml config'
+            }
+        }
+
+        stage('Docker Info') {
+            steps {
+                sh 'docker version'
+                sh 'docker node ls'
+            }
+        }
+
+        stage('Build Images') {
+            parallel {
+
+                stage('Build Bus') {
+                    steps {
+                        sh """
+                        docker build \
+                        -t $REGISTRY/bus:$IMAGE_TAG \
+                        -t $REGISTRY/bus:latest \
+                        ./app1
+                        """
+                    }
+                }
+
+                stage('Build Movie') {
+                    steps {
+                        sh """
+                        docker build \
+                        -t $REGISTRY/movie:$IMAGE_TAG \
+                        -t $REGISTRY/movie:latest \
+                        ./app2
+                        """
+                    }
+                }
+
+                stage('Build Flight') {
+                    steps {
+                        sh """
+                        docker build \
+                        -t $REGISTRY/flight:$IMAGE_TAG \
+                        -t $REGISTRY/flight:latest \
+                        ./app3
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                sh "trivy image --severity HIGH,CRITICAL $REGISTRY/bus:$IMAGE_TAG || true"
+                sh "trivy image --severity HIGH,CRITICAL $REGISTRY/movie:$IMAGE_TAG || true"
+                sh "trivy image --severity HIGH,CRITICAL $REGISTRY/flight:$IMAGE_TAG || true"
+            }
+        }
+
+        stage('Push Images') {
+            steps {
+
+                withDockerRegistry(
+                    [
+                        credentialsId: '720a249f-92e3-4bd1-b926-3af3ec39e913',
+                        url: 'https://index.docker.io/v1/'
+                    ]
+                ) {
+
+                    sh "docker push $REGISTRY/bus:$IMAGE_TAG"
+                    sh "docker push $REGISTRY/bus:latest"
+
+                    sh "docker push $REGISTRY/movie:$IMAGE_TAG"
+                    sh "docker push $REGISTRY/movie:latest"
+
+                    sh "docker push $REGISTRY/flight:$IMAGE_TAG"
+                    sh "docker push $REGISTRY/flight:latest"
+                }
+            }
+        }
+
+        stage('Deploy Stack') {
+            steps {
+
+                sh """
+                export IMAGE_TAG=$IMAGE_TAG
+
+                docker stack deploy \
+                --with-registry-auth \
+                -c compose.yml \
+                $STACK_NAME
+                """
+            }
+        }
+
+        stage('Wait For Services') {
+            steps {
+
+                sh '''
+                echo "Waiting for services to stabilize..."
+
+                for i in {1..12}
+                do
+                    echo "Checking service replicas..."
+
+                    docker service ls
+
+                    READY=$(docker service ls --format "{{.Replicas}}" | grep -c "3/3" || true)
+
+                    if [ "$READY" -ge 4 ]; then
+                        echo "All services are ready"
+                        break
+                    fi
+
+                    echo "Services not ready yet..."
+                    sleep 10
+                done
+                '''
+            }
+        }
+
+        stage('Verify Services') {
+            steps {
+
+                sh '''
+                docker stack services $STACK_NAME
+
+                docker service ps docker_stack_reverse-proxy
+                docker service ps docker_stack_app1
+                docker service ps docker_stack_app2
+                docker service ps docker_stack_app3
+                '''
+            }
+        }
+    }
+    post {
+        success {
+            mail(
+                to: "${params.MAIL_ID}",
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    Build completed successfully.
+                    
+                    Project: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    
+                    Docker images pushed successfully.
+                    Docker Swarm deployment completed.
+                    
+                    Build URL:
+                    ${env.BUILD_URL}
+                """
+            )
+        }
+    
+        failure {
+            mail(
+                to: "${params.MAIL_ID}",
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    Build failed.
+                    
+                    Project: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    
+                    Please check Jenkins console logs.
+                    
+                    Build URL:
+                    ${env.BUILD_URL}
+                """
+            )
+        }
+    
+        aborted {
+            mail(
+                to: "${params.MAIL_ID}",
+                subject: "ABORTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    Build was aborted.
+                    
+                    Project: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    
+                    Build URL:
+                    ${env.BUILD_URL}
+                """
+            )
+        }
+    
+        always {
+            cleanWs()
+        }
+    }
+
+}
