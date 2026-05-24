@@ -1,89 +1,189 @@
-version: "3.8"
-
+version: "3.9"
 
 services:
+
   reverse-proxy:
-   image: nginx:latest
+    image: nginx:stable-alpine
 
-   ports:
-     - "80:80"
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
 
-   networks:
-     - app_network
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
 
-   configs:
-     - source: nginx_conf
-       target: /etc/nginx/nginx.conf
-
-   deploy:
-     replicas: 3
-
-     restart_policy:
-       condition: any
-
-  app1:
-    image: shivasai21/myimg:bus
     networks:
       - app_network
+
+    deploy:
+      mode: replicated
+      replicas: 3
+
+      placement:
+        constraints:
+          - spread: node.id
+
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app1:
+    image: shivasai21/bus:${IMAGE_TAG:-latest}
+
+    networks:
+      - app_network
+
     volumes:
       - app1:/opt/bus_volume
-    deploy:
-      replicas: 3
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
+
     secrets:
       - db_password
 
-  app2:
-    image: shivasai21/myimg:movie
-    networks:
-      - app_network
-    volumes:
-      - app2:/opt/movie_volume
     deploy:
+      mode: replicated
       replicas: 3
+
+      placement:
+        constraints:
+          - spread: node.id
+
       restart_policy:
-        condition: any
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+      update_config:
+        parallelism: 1
         delay: 10s
+        order: start-first
+        failure_action: rollback
+
       resources:
         limits:
-          cpus: "1.0"
-          memory: 1G
-        reservations:
-          cpus: "0.5"
+          cpus: "0.50"
           memory: 512M
+
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app2:
+    image: shivasai21/movie:${IMAGE_TAG:-latest}
+
+    networks:
+      - app_network
+
+    volumes:
+      - app2:/opt/movie_volume
+
     secrets:
       - api_key
 
+    deploy:
+      mode: replicated
+      replicas: 3
+
+      placement:
+        constraints:
+          - spread: node.id
+
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   app3:
-    image: shivasai21/myimg:flight
+    image: shivasai21/flight:${IMAGE_TAG:-latest}
+
     networks:
       - app_network
+
     volumes:
       - app3:/opt/flight_volume
+
+    secrets:
+      - flight_token
+
     deploy:
+      mode: replicated
       replicas: 3
+
+      placement:
+        constraints:
+          - spread: node.id
+
       restart_policy:
-        condition: any
+        condition: on-failure
         delay: 5s
+        max_attempts: 5
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+
       resources:
         limits:
           cpus: "0.75"
           memory: 768M
+
         reservations:
           cpus: "0.25"
           memory: 256M
-    secrets:
-      - flight_token
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   app1:
@@ -93,12 +193,15 @@ volumes:
 networks:
   app_network:
     driver: overlay
+    attachable: true
 
 secrets:
   db_password:
     external: true
+
   api_key:
     external: true
+
   flight_token:
     external: true
 
