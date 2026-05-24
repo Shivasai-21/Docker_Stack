@@ -23,7 +23,7 @@ services:
       replicas: 3
 
       placement:
-        constraints:
+        preferences:
           - spread: node.id
 
       restart_policy:
@@ -64,7 +64,7 @@ services:
       replicas: 3
 
       placement:
-        constraints:
+        preferences:
           - spread: node.id
 
       restart_policy:
@@ -110,7 +110,7 @@ services:
       replicas: 3
 
       placement:
-        constraints:
+        preferences:
           - spread: node.id
 
       restart_policy:
@@ -156,7 +156,7 @@ services:
       replicas: 3
 
       placement:
-        constraints:
+        preferences:
           - spread: node.id
 
       restart_policy:
